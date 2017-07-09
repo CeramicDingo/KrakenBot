@@ -34,10 +34,4 @@ class Calcs:
                     cum_total += val
 
                 result[item[0]] = cum_total / ma
-
-            print('Price: ' + str(item[4]) + ' ' + '\tCounter: ' +
-                  str(count) + '\tSMA: ' + str(result[item[0]]))
-            print(str(ma_prices))
-        print(str(result))
-
         return result

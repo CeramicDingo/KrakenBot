@@ -7,18 +7,26 @@ import calcs
 
 class Data(object):
 
-    def __init__(self, datadir='', keyfile='', tradingpair='', timeframe=15):
+    def __init__(self, datadir, keyfile, crypto, fiat, timeframe=15):
         self.datadir = datadir
         self.k = krakenex.API()
         self.k.load_key(keyfile)
-        self.tradingpair = tradingpair
+        self.tradingpair = crypto+fiat
         self.timeframe = timeframe
-        self.ohlc_file = datadir + '\\' + tradingpair + str(timeframe) + '_OHLC.json'
-        self.ohlc_file_csv = datadir + '\\' + tradingpair + str(timeframe) + '_OHLC.csv'
+        self.ohlc_file = datadir + '\\' + self.tradingpair + str(timeframe) + '_OHLC.json'
+        self.ohlc_file_csv = datadir + '\\' + self.tradingpair + str(timeframe) + '_OHLC.csv'
         self.ohlc_data = []
-        self.ohlc_last_file = datadir + '\\' + tradingpair + str(timeframe) + '_OHLC_LASTID.json'
+        self.ohlc_last_file = datadir + '\\' + self.tradingpair + str(timeframe) + '_OHLC_LASTID.json'
         self.ohlc_last_id = 0
         self.calcs_data = {}
+        self.price_data = {}
+        self.crypto = crypto
+        self.fiat = fiat
+        self.trade_log = []
+        self.trade_log_file = datadir + '\\' + self.tradingpair + str(timeframe) + '_TRADES.csv'
+        self.fiatbal = 0.0
+        self.cryptobal = 0.0
+        self.open_position = False
         return
 
     def _parse_ohlc(self, result):
@@ -45,6 +53,7 @@ class Data(object):
                 self.ohlc_last_id = json.load(f)
 
             self._update_calcs_keys()
+            self._update_price_data()
         else:
             print('Existing OHLC data not found.')
             self.refresh_ohlc()
@@ -65,6 +74,10 @@ class Data(object):
             self.ohlc_data.append(item)
 
         self._update_calcs_keys()
+        self._update_price_data()
+        return
+
+    def refresh_data(self):
         return
 
     def _update_calcs_keys(self):
@@ -73,9 +86,18 @@ class Data(object):
                 self.calcs_data[item[0]] = {}
         return
 
+    def _update_price_data(self):
+        for item in self.ohlc_data:
+            if item[0] not in self.price_data:
+                self.price_data[item[0]] = item[4]
+        return
+
     def update_sma(self, ma):
         c = calcs.Calcs()
-        c.calc_sma(self.ohlc_data, ma)
+        sma = c.calc_sma(self.ohlc_data, ma)
+
+        for k,v in sma.items():
+            self.calcs_data[k].update({'SMA' + str(ma): v})
         return
 
     def export_ohlc(self):
@@ -93,4 +115,12 @@ class Data(object):
         with open(self.ohlc_file_csv, 'w', newline='') as f:
             w = csv.writer(f)
             w.writerows(self.ohlc_data)
+        return
+
+    def export_trades(self):
+        print('Exporting trade data to CSV.')
+
+        with open(self.trade_log_file, 'a', newline='') as f:
+            w = csv.writer(f)
+            w.writerows(self.trade_log)
         return
