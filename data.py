@@ -16,17 +16,19 @@ class Data(object):
         self.ohlc_file = datadir + '\\' + self.tradingpair + str(timeframe) + '_OHLC.json'
         self.ohlc_file_csv = datadir + '\\' + self.tradingpair + str(timeframe) + '_OHLC.csv'
         self.ohlc_data = []
+        self.ohlc_index = [] # Populated with every frame ID in order to obtain index for ohlc_data
         self.ohlc_last_file = datadir + '\\' + self.tradingpair + str(timeframe) + '_OHLC_LASTID.json'
         self.ohlc_last_id = 0
-        self.calcs_data = {}
-        self.price_data = {}
+        self.calcs_data = {} # Multiple SMAs calculated for each OHLC frame
+        self.price_data = {} # Closing price for each OHLC frame
         self.crypto = crypto
         self.fiat = fiat
-        self.trade_log = []
+        self.trade_log = [] # Log of any executed trades
         self.trade_log_file = datadir + '\\' + self.tradingpair + str(timeframe) + '_TRADES.csv'
         self.fiatbal = 0.0
         self.cryptobal = 0.0
         self.open_position = False
+        self.sim_open_position = False
         return
 
     def _parse_ohlc(self, result):
@@ -45,6 +47,7 @@ class Data(object):
 
     def import_ohlc(self):
         if os.path.isfile(self.ohlc_file) and os.path.isfile(self.ohlc_last_file):
+            # Check for exisiting data file and import if it exists
             print('Importing existing OHLC data.')
 
             with open(self.ohlc_file, 'r', newline='') as f:
@@ -54,7 +57,9 @@ class Data(object):
 
             self._update_calcs_keys()
             self._update_price_data()
+            self._update_ohlc_index()
         else:
+            # Import new data is data file does not exist
             print('Existing OHLC data not found.')
             self.refresh_ohlc()
         return
@@ -75,21 +80,31 @@ class Data(object):
 
         self._update_calcs_keys()
         self._update_price_data()
+        self._update_ohlc_index()
         return
 
     def refresh_data(self):
         return
 
+    # Populate all the keys with blank dicts to be used for calc data later (e.g. SMA)
     def _update_calcs_keys(self):
         for item in self.ohlc_data:
             if item[0] not in self.calcs_data:
                 self.calcs_data[item[0]] = {}
         return
 
+    # Use the closing price (item[4])
     def _update_price_data(self):
         for item in self.ohlc_data:
             if item[0] not in self.price_data:
                 self.price_data[item[0]] = item[4]
+        return
+
+    def _update_ohlc_index(self):
+        self.ohlc_index.clear() # Clear index list before re-populating
+
+        for item in self.ohlc_data:
+            self.ohlc_index.append(item[0])
         return
 
     def update_sma(self, ma):
