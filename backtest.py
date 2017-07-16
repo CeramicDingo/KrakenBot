@@ -8,6 +8,8 @@ class Backtest:
         self.b = brain
         self.backtest_data = []
         self.backtest_data_file = self.d.datadir + '\\' + self.d.tradingpair + str(self.d.timeframe) + '_BACKTEST.csv'
+        self.trade_data = []
+        self.trade_data_file = self.d.datadir + '\\' + self.d.tradingpair + str(self.d.timeframe) + '_SIMTRADES.csv'
         pass
 
     # Simulate a single moving average combination. Data object needs to be updated with the
@@ -15,6 +17,7 @@ class Backtest:
     def sma_sim(self, ma_1, ma_2):
         firstrun = True
         profit = 0.0
+        last_trade = 0.0
         last_id = self.d.ohlc_last_id
 
         # Calculate buy and hold profit / loss using first and last OHLC data frames.
@@ -34,9 +37,11 @@ class Backtest:
                 price = decision[2]
 
                 if decision[0] == 'BUY':
-                    profit -= price
+                    last_trade = price
+                    self.trade_data.append(decision)
                 elif decision[0] == 'SELL':
-                    profit += price
+                    profit += (price - last_trade)
+                    self.trade_data.append(decision)
 
         # Calculate profit in excess of buy & hold.
         vs_buy_hold = profit - buy_hold
@@ -47,7 +52,7 @@ class Backtest:
         print('Profit: ' + str(profit))
         print('Buy & hold: ' + str(buy_hold))
         print('vs Buy & hold: ' + str(vs_buy_hold))
-        return vs_buy_hold
+        return profit
 
     def export(self):
         print('Exporting backtest data to CSV.')
@@ -56,6 +61,14 @@ class Backtest:
         with open(self.backtest_data_file, 'w', newline='') as f:
             w = csv.writer(f)
             w.writerows(self.backtest_data)
+        return
+
+    # Export detailed trades data, should be used with single SMA pair test
+    def export_trades(self):
+        print('Exporting sim trade data to CSV.')
+        with open(self.trade_data_file, 'w', newline='') as f:
+            w = csv.writer(f)
+            w.writerows(self.trade_data)
         return
 
     # Simulate SMA strategy for a given data object from ma_min to ma_max
@@ -70,10 +83,11 @@ class Backtest:
         for ma_1 in range(ma_min, ma_max):
             for ma_2 in range(ma_min, ma_max):
                 if ma_1 < ma_2:
+                    self.d.sim_open_position = False
                     profit = self.sma_sim(ma_1, ma_2)
                     if profit > best_profit:
                         best_profit = profit
                         best_ma = str(ma_1) + '/' + str(ma_2)
-        print('Best combo is: ' + best_ma + ' with ' + str(best_profit) + ' profit vs buy and hold.')
+        print('Best combo is: ' + best_ma + ' with ' + str(best_profit) + ' profit.')
         self.export()
         return

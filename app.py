@@ -14,12 +14,12 @@ keyfile = r'/home/craig/KrakenBot/Key/kraken.key'
 # Trading Pairs:
 # XETHZEUR
 # XXBTZEUR
-crypto = 'XETH'
+crypto = 'XXBT'
 fiat = 'ZEUR'
 
 timeframe = 60
-ma_1 = 22
-ma_2 = 34
+ma_1 = 16
+ma_2 = 28
 
 # Set up data object and import / refresh data
 d = data.Data(datadir, keyfile, crypto, fiat, timeframe)
@@ -49,6 +49,10 @@ t = backtest.Backtest(d, b)
 
 # Simulate SMA combinations min / max SMA
 t.run_sma_sim(1, 100)
+
+# Simulate single SMA combo and export simulated trades
+# t.sma_sim(ma_1, ma_2)
+# t.export_trades()
 
 # Save data
 d.export_ohlc()
