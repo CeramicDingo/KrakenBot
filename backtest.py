@@ -1,7 +1,8 @@
 import csv
+import datetime
 
 
-class Backtest:
+class Backtest(object):
 
     def __init__(self, data, brain):
         self.d = data
@@ -22,6 +23,11 @@ class Backtest:
 
         # Calculate buy and hold profit / loss using first and last OHLC data frames.
         buy_hold = self.d.ohlc_data[-1][4] - self.d.ohlc_data[0][4]
+
+        # Number of days in the OHLC data
+        start_date = datetime.date.fromtimestamp(self.d.ohlc_data[0][0])
+        end_date = datetime.date.fromtimestamp(self.d.ohlc_data[-1][0])
+        delta = end_date - start_date
 
         print('Backtesting SMA using values: ' + str(ma_1) + '/' + str(ma_2))
 
@@ -46,14 +52,18 @@ class Backtest:
         # Calculate profit in excess of buy & hold.
         vs_buy_hold = profit - buy_hold
 
-        result = [str(ma_1) + '/' + str(ma_2), profit, buy_hold, vs_buy_hold]
+        # Calculate profit per day
+        profit_pday = profit / delta.days
+
+        result = [str(ma_1) + '/' + str(ma_2), profit, buy_hold, vs_buy_hold, profit_pday]
         self.backtest_data.append(result)
 
         print('Profit: ' + str(profit))
         print('Buy & hold: ' + str(buy_hold))
         print('vs Buy & hold: ' + str(vs_buy_hold))
-        return profit
+        return result
 
+    # Export monte carlo results
     def export(self):
         print('Exporting backtest data to CSV.')
 
@@ -71,10 +81,11 @@ class Backtest:
             w.writerows(self.trade_data)
         return
 
-    # Simulate SMA strategy for a given data object from ma_min to ma_max
+    # Simulate SMA strategy for a given data object from ma_min to ma_max (monte carlo sim)
     def run_sma_sim(self, ma_min, ma_max):
         best_profit = 0.0
         best_ma = ''
+        best_profit_pday = 0.0
 
         # Calculate SMA values upto ma_max
         for x in range (ma_max):
@@ -83,11 +94,14 @@ class Backtest:
         for ma_1 in range(ma_min, ma_max):
             for ma_2 in range(ma_min, ma_max):
                 if ma_1 < ma_2:
-                    self.d.sim_open_position = False
-                    profit = self.sma_sim(ma_1, ma_2)
+                    self.b.sim_open_position = False # Reset open position after each iteration
+                    result = self.sma_sim(ma_1, ma_2)
+                    profit = result[1]
                     if profit > best_profit:
                         best_profit = profit
                         best_ma = str(ma_1) + '/' + str(ma_2)
+                        best_profit_pday = result[4]
         print('Best combo is: ' + best_ma + ' with ' + str(best_profit) + ' profit.')
+        print('..Averaging ' + str(best_profit_pday) + ' profit per day.')
         self.export()
         return

@@ -3,6 +3,7 @@ import csv
 import os
 import json
 import calcs
+import time
 
 
 class Data(object):
@@ -23,13 +24,11 @@ class Data(object):
         self.price_data = {} # Closing price for each OHLC frame
         self.crypto = crypto
         self.fiat = fiat
-        self.trade_log = [] # Log of any executed trades
-        self.trade_log_file = datadir + '\\' + self.tradingpair + str(timeframe) + '_TRADES.csv'
-        self.fiatbal = 0.0
-        self.cryptobal = 0.0
-        self.open_position = False
-        self.sim_open_position = False
-        return
+        self.trade_log = [] # Log of any (real) executed trades
+        self.trade_log_file = datadir + '\\' + self.tradingpair + str(timeframe) + '_TRADES.json'
+        self.decision_log = [] # Log of decisions buy/sell/hold
+        self.decision_log_file = datadir + '\\' + self.tradingpair + str(timeframe) + '_DECISIONS.csv'
+        pass
 
     def _parse_ohlc(self, result):
         print('Parsing OHLC data.')
@@ -83,9 +82,6 @@ class Data(object):
         self._update_ohlc_index()
         return
 
-    def refresh_data(self):
-        return
-
     # Populate all the keys with blank dicts to be used for calc data later (e.g. SMA)
     def _update_calcs_keys(self):
         for item in self.ohlc_data:
@@ -133,9 +129,28 @@ class Data(object):
         return
 
     def export_trades(self):
-        print('Exporting trade data to CSV.')
+        print('Exporting trade data.')
+
+        with open(self.trade_log_file, 'a', newline='') as f:
+            json.dump(self.trade_log, f)
+        return
+
+    def export_decisions(self):
+        print('Exporting decision data.')
 
         with open(self.trade_log_file, 'a', newline='') as f:
             w = csv.writer(f)
-            w.writerows(self.trade_log)
+            w.writerows(self.decision_log)
         return
+
+    def get_fiatbal(self):
+        query = self.k.query_private('Balance')
+        fiatbal = float(query['result'][self.fiat])
+        time.sleep(1) # API call limiter
+        return fiatbal
+
+    def get_cryptobal(self):
+        query = self.k.query_private('Balance')
+        cryptobal = float(query['result'][self.crypto])
+        time.sleep(1) # API call limiter
+        return cryptobal

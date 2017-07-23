@@ -1,7 +1,7 @@
 from collections import deque
 
 
-class Calcs:
+class Calcs(object):
 
     def __init__(self):
         pass
