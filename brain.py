@@ -15,7 +15,7 @@ class Brain(object):
     # Check we have enough crypto to start trading with (above c_vol)
     def check_min_c(self):
         result = False
-        cryptobal = self.d.get_cryptobal
+        cryptobal = self.d.get_cryptobal()
 
         if cryptobal >= self.c_vol:
             result = True
@@ -73,7 +73,7 @@ class Brain(object):
             if not self.open_position:
                 # If we don't have an open position, look for BUY opportunities
                 if curr_ma_1 > curr_ma_2 and prev_ma_1 <= prev_ma_2:
-                    decision = 'BUY'
+                    decision = 'buy' # Needs to be lower case to be valid to the API
 
                     # Log decision
                     price = self.d.price_data[curr]
@@ -90,7 +90,7 @@ class Brain(object):
                     exec_trade = self.trd.market_order(decision, self.c_vol)
                     self.d.trade_log.append(exec_trade)
                 else:
-                    decision = 'HOLD'
+                    decision = 'hold'
 
                     # Log decision
                     price = self.d.price_data[curr]
@@ -105,7 +105,7 @@ class Brain(object):
             elif self.open_position:
                 # If we do have an open position, look for SELL opportunities
                 if curr_ma_1 < curr_ma_2 and prev_ma_1 >= prev_ma_2:
-                    decision = 'SELL'
+                    decision = 'sell'
 
                     # Log decision
                     price = self.d.price_data[curr]
@@ -122,7 +122,7 @@ class Brain(object):
                     exec_trade = self.trd.market_order(decision, self.c_vol)
                     self.d.trade_log.append(exec_trade)
                 else:
-                    decision = 'HOLD'
+                    decision = 'hold'
 
                     # Log decision
                     price = self.d.price_data[curr]
@@ -135,7 +135,7 @@ class Brain(object):
                     print('HOLD - No BUY/SELL signals.')
         else:
             # Fallback position is to hold (not enough data or crypto/fiat)
-            decision = 'HOLD'
+            decision = 'hold'
 
             # Log decision
             price = self.d.price_data[curr]

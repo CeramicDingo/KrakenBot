@@ -138,7 +138,7 @@ class Data(object):
     def export_decisions(self):
         print('Exporting decision data.')
 
-        with open(self.trade_log_file, 'a', newline='') as f:
+        with open(self.decision_log_file, 'a', newline='') as f:
             w = csv.writer(f)
             w.writerows(self.decision_log)
         return
