@@ -53,7 +53,7 @@ while True:
             continue
         except timeout:
             print('ERROR: Query to server timed out...')
-        else:
+        finally: # Append to export file when the program terminates, otherwise will have duplicates
             d.export_decisions()
             d.export_trades()
 

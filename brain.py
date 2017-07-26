@@ -64,6 +64,9 @@ class Brain(object):
         # Log decisions
         decision_log = []
 
+        # Log executed trades
+        trade_log = []
+
         # Get current UNIX epoch and convert to a timestamp string
         ts = time.asctime(time.gmtime())
 
@@ -80,6 +83,7 @@ class Brain(object):
                     decision_log.append(decision)
                     decision_log.append(self.d.tradingpair)
                     decision_log.append(price)
+                    decision_log.append(curr)
                     decision_log.append(ts)
                     self.d.decision_log.append(decision_log)
 
@@ -87,8 +91,8 @@ class Brain(object):
 
                     # Execute trade and log outcome
                     print('***Executing market BUY order***')
-                    exec_trade = self.trd.market_order(decision, self.c_vol)
-                    self.d.trade_log.append(exec_trade)
+                    trade_log.append(self.trd.market_order(decision, self.c_vol))
+                    self.d.trade_log.append(trade_log)
                 else:
                     decision = 'hold'
 
@@ -97,6 +101,7 @@ class Brain(object):
                     decision_log.append(decision)
                     decision_log.append(self.d.tradingpair)
                     decision_log.append(price)
+                    decision_log.append(curr)
                     decision_log.append(ts)
                     self.d.decision_log.append(decision_log)
 
@@ -112,6 +117,7 @@ class Brain(object):
                     decision_log.append(decision)
                     decision_log.append(self.d.tradingpair)
                     decision_log.append(price)
+                    decision_log.append(curr)
                     decision_log.append(ts)
                     self.d.decision_log.append(decision_log)
 
@@ -119,8 +125,8 @@ class Brain(object):
 
                     # Execute trade and log outcome
                     print('***Executing market SELL order***')
-                    exec_trade = self.trd.market_order(decision, self.c_vol)
-                    self.d.trade_log.append(exec_trade)
+                    trade_log.append(self.trd.market_order(decision, self.c_vol))
+                    self.d.trade_log.append(trade_log)
                 else:
                     decision = 'hold'
 
@@ -129,6 +135,7 @@ class Brain(object):
                     decision_log.append(decision)
                     decision_log.append(self.d.tradingpair)
                     decision_log.append(price)
+                    decision_log.append(curr)
                     decision_log.append(ts)
                     self.d.decision_log.append(decision_log)
 
@@ -142,6 +149,7 @@ class Brain(object):
             decision_log.append(decision)
             decision_log.append(self.d.tradingpair)
             decision_log.append(price)
+            decision_log.append(curr)
             decision_log.append(ts)
             self.d.decision_log.append(decision_log)
 
