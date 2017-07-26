@@ -16,9 +16,9 @@ keyfile = r'/home/craig/KrakenBot/Key/kraken.key'
 # Set trading pair, OHLC timeframe and SMA vals
 crypto = 'XXBT'
 fiat = 'ZEUR'
-timeframe = 5
+timeframe = 15
 ma_1 = 1
-ma_2 = 2
+ma_2 = 12
 
 # Set up data object and import / refresh data
 d = data.Data(datadir, keyfile, crypto, fiat, timeframe)
@@ -27,36 +27,37 @@ d.update_sma(ma_1)  # Update ma 1 calcs
 d.update_sma(ma_2)  # Update ma 2 calcs
 
 # Set up brain object with data obj
-b = brain.Brain(d, 0.005) # Qty of crypto to trade
+b = brain.Brain(d, 0.05, 240) # Qty of crypto to trade and order timeout (should be less than the run interval below)
 
 # Main program control loop
 while True:
 
-    # Refresh and save data
     try:
-        d.refresh_ohlc()
-    except JSONDecodeError:
-        print('ERROR: Unexpected response from server, skipping...')
-        continue
-    except timeout:
-        print('ERROR: Query to server timed out...')
-    else:
-        d.export_ohlc() # Save OHLC data
-        d.update_sma(ma_1) # Update ma 1 calcs
-        d.update_sma(ma_2) # Update ma 2 calcs
-
-        # Make a decision if data updated OK. Brain makes calls to API, so put inside its own try block
+        # Refresh and save data
         try:
-            b.sma_decide(ma_1, ma_2)
+            d.refresh_ohlc()
         except JSONDecodeError:
             print('ERROR: Unexpected response from server, skipping...')
             continue
         except timeout:
             print('ERROR: Query to server timed out...')
-        finally: # Append to export file when the program terminates, otherwise will have duplicates
-            d.export_decisions()
-            d.export_trades()
+        else:
+            d.export_ohlc() # Save OHLC data
+            d.update_sma(ma_1) # Update ma 1 calcs
+            d.update_sma(ma_2) # Update ma 2 calcs
 
-    time.sleep(120) # Time in seconds to wait before next cycle
+            # Make a decision if data updated OK. Brain makes calls to API, so put inside its own try block
+            try:
+                b.sma_decide(ma_1, ma_2)
+            except JSONDecodeError:
+                print('ERROR: Unexpected response from server, skipping...')
+                continue
+            except timeout:
+                print('ERROR: Query to server timed out...')
 
+        time.sleep(300) # Time in seconds to wait before next cycle
+
+    finally:  # Append to export file when the program terminates, otherwise will have duplicates
+        d.export_decisions()
+        d.export_trades()
 

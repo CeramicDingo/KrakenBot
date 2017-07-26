@@ -3,7 +3,7 @@ import time
 
 class Trade(object):
 
-    def __init__(self, data, expiry=60):
+    def __init__(self, data, expiry):
         self.d = data
         self.expiry = expiry # Order expires after x seconds (0 = doesn't expire)
         pass

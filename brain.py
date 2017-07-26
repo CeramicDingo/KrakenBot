@@ -4,10 +4,10 @@ import trade
 
 class Brain(object):
 
-    def __init__(self, data, c_vol=0.01):
+    def __init__(self, data, c_vol=0.01, o_expiry=120):
         self.d = data
         self.c_vol = c_vol # Units of crypto to trade
-        self.trd = trade.Trade(self.d, 60) # Trade obj with order expiry of x seconds
+        self.trd = trade.Trade(self.d, o_expiry) # Trade obj with order expiry of x seconds
         self.open_position = False
         self.sim_open_position = False # For simulations / backtests
         pass
