@@ -37,7 +37,7 @@ class Brain(object):
         return result
 
     # Decide whether to execute a live trade for the chosen SMAs
-    def sma_decide(self, ma_1, ma_2):
+    def ma_decide(self, type, ma_1, ma_2):
         fiatcheck = self.check_min_f()
         cryptocheck = self.check_min_c()
 
@@ -47,8 +47,13 @@ class Brain(object):
         else:
             self.open_position = False
 
-        key_ma_1 = 'SMA' + str(ma_1)
-        key_ma_2 = 'SMA' + str(ma_2)
+        # Set MA type to use EMA / SMA
+        if type == 'SMA':
+            key_ma_1 = 'SMA' + str(ma_1)
+            key_ma_2 = 'SMA' + str(ma_2)
+        else:
+            key_ma_1 = 'EMA' + str(ma_1)
+            key_ma_2 = 'EMA' + str(ma_2)
 
         # Get ID of current frame and previous frame
         curr = self.d.ohlc_data[-1][0]
@@ -87,7 +92,7 @@ class Brain(object):
                     decision_log.append(ts)
                     self.d.decision_log.append(decision_log)
 
-                    print('BUY - SMA Crossover.')
+                    print('BUY - ' + str(type) + ' crossover.')
 
                     # Execute trade and log outcome
                     print('***Executing market BUY order***')
@@ -121,7 +126,7 @@ class Brain(object):
                     decision_log.append(ts)
                     self.d.decision_log.append(decision_log)
 
-                    print('SELL - SMA Crossover.')
+                    print('SELL - ' + str(type) + ' crossover.')
 
                     # Execute trade and log outcome
                     print('***Executing market SELL order***')
@@ -156,10 +161,14 @@ class Brain(object):
             print('HOLD - Not enough data, or balance too low.')
         return
 
-    # Simulate an SMA decision. The frame curr -1 should be available, this is not checked within the method.
-    def sma_decide_sim(self, ma_1, ma_2, curr):
-        key_ma_1 = 'SMA' + str(ma_1)
-        key_ma_2 = 'SMA' + str(ma_2)
+    # Simulate an SMA / EMA decision. The frame curr -1 should be available, this is not checked within the method.
+    def ma_decide_sim(self, type, ma_1, ma_2, curr):
+        if type == 'SMA':
+            key_ma_1 = 'SMA' + str(ma_1)
+            key_ma_2 = 'SMA' + str(ma_2)
+        else:
+            key_ma_1 = 'EMA' + str(ma_1)
+            key_ma_2 = 'EMA' + str(ma_2)
 
         # Get index of current frame and previous frame
         curr_i = self.d.ohlc_index.index(curr)
@@ -168,7 +177,7 @@ class Brain(object):
         # Get frame ID of previous frame
         prev = self.d.ohlc_data[prev_i][0]
 
-        # Retrieve SMA calcs from data object
+        # Retrieve SMA / EMA calcs from data object
         curr_ma_1 = self.d.calcs_data[curr][key_ma_1]
         curr_ma_2 = self.d.calcs_data[curr][key_ma_2]
 

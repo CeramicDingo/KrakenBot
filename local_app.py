@@ -20,12 +20,13 @@ keyfile = r'/home/craig/KrakenBot/Key/kraken.key'
 # XXBT  ZEUR
 # XLTC  ZEUR
 
-# Set trading pair, OHLC timeframe and SMA vals
+# Set trading pair, OHLC timeframe and moving avg vals
 crypto = 'XXBT'
 fiat = 'ZEUR'
-timeframe = 5
-ma_1 = 1
-ma_2 = 2
+timeframe = 240
+ma_1 = 7
+ma_2 = 16
+type = 'EMA' # EMA / SMA
 
 # Set up data object and import / refresh data
 d = data.Data(datadir, keyfile, crypto, fiat, timeframe)
@@ -35,6 +36,10 @@ d.refresh_ohlc()
 # Update SMA calcs for imported data
 d.update_sma(ma_1)
 d.update_sma(ma_2)
+
+# Update EMA calcs for imported data
+d.update_ema(ma_1)
+d.update_ema(ma_2)
 
 # Loop for x minutes
 # for mins in range(720):
@@ -48,11 +53,11 @@ b = brain.Brain(d)
 # Backtest - pass data and brain object parameters
 bt = backtest.Backtest(d, b)
 
-# Monte carlo simulation from min to max SMA
-bt.run_sma_sim(1, 50)
+# Monte carlo simulation from min to max MA
+bt.run_ma_sim(type, 1, 50)
 
-# Simulate single SMA combo and export simulated trades
-# bt.sma_sim(ma_1, ma_2)
+# Simulate single MA combo and export simulated trades
+# bt.ma_sim(type, ma_1, ma_2)
 # bt.export_trades()
 
 # Save data

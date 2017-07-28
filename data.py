@@ -20,7 +20,7 @@ class Data(object):
         self.ohlc_index = [] # Populated with every frame ID in order to obtain index for ohlc_data
         self.ohlc_last_file = datadir + '\\' + self.tradingpair + str(timeframe) + '_OHLC_LASTID.json'
         self.ohlc_last_id = 0
-        self.calcs_data = {} # Multiple SMAs calculated for each OHLC frame
+        self.calcs_data = {} # Calc data for each OHLC frame (SMA / EMA, etc)
         self.price_data = {} # Closing price for each OHLC frame
         self.crypto = crypto
         self.fiat = fiat
@@ -109,6 +109,14 @@ class Data(object):
 
         for k,v in sma.items():
             self.calcs_data[k].update({'SMA' + str(ma): v})
+        return
+
+    def update_ema(self, ma):
+        c = calcs.Calcs()
+        ema = c.calc_ema(self.ohlc_data, ma)
+
+        for k,v in ema.items():
+            self.calcs_data[k].update({'EMA' + str(ma): v})
         return
 
     def export_ohlc(self):

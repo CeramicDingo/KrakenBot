@@ -15,7 +15,7 @@ class Backtest(object):
 
     # Simulate a single moving average combination. Data object needs to be updated with the
     # required SMA calcs before calling.
-    def sma_sim(self, ma_1, ma_2):
+    def ma_sim(self, type, ma_1, ma_2):
         firstrun = True
         profit = 0.0
         last_trade = 0.0
@@ -29,7 +29,10 @@ class Backtest(object):
         end_date = datetime.date.fromtimestamp(self.d.ohlc_data[-1][0])
         delta = end_date - start_date
 
-        print('Backtesting SMA using values: ' + str(ma_1) + '/' + str(ma_2))
+        if type == 'SMA':
+            print('Backtesting SMA using values: ' + str(ma_1) + '/' + str(ma_2))
+        else:
+            print('Backtesting EMA using values: ' + str(ma_1) + '/' + str(ma_2))
 
         for frame in self.d.ohlc_data:
             if firstrun:
@@ -39,7 +42,7 @@ class Backtest(object):
                 # Stop if there are no further records.
                 break
             else:
-                decision = self.b.sma_decide_sim(ma_1, ma_2, frame[0])
+                decision = self.b.ma_decide_sim(type, ma_1, ma_2, frame[0])
                 price = decision[2]
 
                 if decision[0] == 'BUY':
@@ -81,21 +84,25 @@ class Backtest(object):
             w.writerows(self.trade_data)
         return
 
-    # Simulate SMA strategy for a given data object from ma_min to ma_max (monte carlo sim)
-    def run_sma_sim(self, ma_min, ma_max):
+    # Simulate SMA / EMA strategy for a given data object from ma_min to ma_max (monte carlo sim)
+    def run_ma_sim(self, type, ma_min, ma_max):
         best_profit = 0.0
         best_ma = ''
         best_profit_pday = 0.0
 
-        # Calculate SMA values upto ma_max
-        for x in range (ma_max):
-            self.d.update_sma(x+1)
+        # Calculate SMA / EMA values upto ma_max
+        if type == 'SMA':
+            for x in range (ma_max):
+                self.d.update_sma(x+1)
+        else:
+            for x in range(ma_max):
+                self.d.update_ema(x+1)
 
         for ma_1 in range(ma_min, ma_max):
             for ma_2 in range(ma_min, ma_max):
                 if ma_1 < ma_2:
                     self.b.sim_open_position = False # Reset open position after each iteration
-                    result = self.sma_sim(ma_1, ma_2)
+                    result = self.ma_sim(type, ma_1, ma_2)
                     profit = result[1]
                     if profit > best_profit:
                         best_profit = profit
