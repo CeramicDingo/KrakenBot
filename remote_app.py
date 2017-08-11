@@ -24,11 +24,9 @@ type = 'EMA' # EMA / SMA
 # Set up data object and import / refresh data
 d = data.Data(datadir, keyfile, crypto, fiat, timeframe)
 d.import_ohlc() # Import OHLC data from file (if it exists)
-d.update_sma(ma_1)  # Update ma 1 calcs
-d.update_sma(ma_2)  # Update ma 2 calcs
 
 # Set up brain object with data obj
-b = brain.Brain(d, 0.05, 240) # Qty of crypto to trade and order timeout (should be less than the run interval below)
+b = brain.Brain(d, 0.3, 240) # Qty of crypto to trade and order timeout (should be less than the run interval below)
 
 # Main program control loop
 try:
@@ -38,7 +36,6 @@ try:
             d.refresh_ohlc()
         except JSONDecodeError:
             print('ERROR: Unexpected response from server, skipping...')
-            continue
         except timeout:
             print('ERROR: Query to server timed out...')
         else:
@@ -53,12 +50,13 @@ try:
             try:
                 b.ma_decide(type, ma_1, ma_2)
             except JSONDecodeError:
-                print('ERROR: Unexpected response from server, skipping...')
-                continue
+                print('ERROR: Unexpected response from server...')
             except timeout:
                 print('ERROR: Query to server timed out...')
+            except IndexError:
+                print('ERROR: Index error, null result from server...')
 
-        time.sleep(900) # Time in seconds to wait before next cycle
+        time.sleep(300) # Time in seconds to wait before next cycle
 
 finally:  # Append to export file when the program terminates, otherwise will have duplicates
     d.export_decisions()
