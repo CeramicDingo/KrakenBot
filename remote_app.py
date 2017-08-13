@@ -53,8 +53,8 @@ try:
                 print('ERROR: Unexpected response from server...')
             except timeout:
                 print('ERROR: Query to server timed out...')
-            except IndexError:
-                print('ERROR: Index error, null result from server...')
+            except KeyError:
+                print('ERROR: Key error, null result from server...')
 
         time.sleep(300) # Time in seconds to wait before next cycle
 
